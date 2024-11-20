@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% load static %}
+    
+    <!-- Link to the CSS file -->
+    <link rel="stylesheet" href="{% static 'Quiz_Base/upload.css' %}">
+</head>
+<body>
+
+<!-- ClassNest Title (Clickable) -->
+<div class="title-container">
+    <a href="https://example.com" class="classnest-title">ClassNest</a>
+    {% comment %} <a href="{% url 'dashboard' %}" class="classnest-title">ClassNest</a> {% endcomment %}
+</div>
+
+<!-- Main Content -->
+<h1>Upload PDF for AI Quiz Generation</h1>
+
+<div class="upload-form">
+    
+    <!-- Upload Form -->
+    <form id="uploadForm" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        
+        <!-- File Input -->
+        <input type="file" name="pdf" accept=".pdf" required>
+
+        <!-- Submit Button -->
+        <button type="submit">Generate Quiz</button>
+        
+        <!-- Message Div -->
+        <div id="message" class="message"></div>
+        
+    </form>
+
+</div>
+
+<!-- JavaScript for handling form submission and showing messages -->
+<script>
+document.getElementById('uploadForm').onsubmit = function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    
+    const messageDiv = document.getElementById('message');
+    
+    // Reset and show loading message
+    messageDiv.className = 'message loading';
+    messageDiv.textContent = 'Generating questions... Please wait...';
+    
+    fetch('/upload/', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}'
+        }
+    })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                messageDiv.className = 'message error';
+                messageDiv.textContent = data.error;
+            } else {
+                messageDiv.className = 'message success';
+                messageDiv.textContent = data.message;
+
+                // Redirect after success
+                setTimeout(() => {
+                    window.location.href = data.redirect;
+                }, 1000);
+            }
+        })
+        .catch(err => {
+            messageDiv.className = 'message error';
+            messageDiv.textContent = 'An error occurred. Please try again.';
+            console.error('Error:', err);
+        });
+};
+</script>
+
+</body>
+</html>
