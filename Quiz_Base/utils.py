@@ -1,11 +1,10 @@
 # utils.py
 from PyPDF2 import PdfReader
-from dotenv import load_dotenv
+
 import os
 import google.generativeai as genai
 import json
 import os
-from dotenv import load_dotenv
 from langchain_groq import ChatGroq
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 import re 
@@ -18,9 +17,8 @@ def extract_text_from_pdf(pdf_path):
         text += page.extract_text()
     return text
 
-# Load environment variables from .env file
-load_dotenv()
-groq_api_key = os.getenv("GROQ_API_KEY")  # Retrieve the API key for Groq
+
+groq_api_key = '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'  # Retrieve the API key for Groq
 
 # Set up the Groq model for generating MCQs
 llm = ChatGroq(groq_api_key=groq_api_key, model_name="llama3-8b-8192")
