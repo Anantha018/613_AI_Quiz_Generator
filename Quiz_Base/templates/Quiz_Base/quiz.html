@@ -1,4 +1,5 @@
 {% block content %}
+{% load static %}
 <div class="container quiz-container">
     <h1 class="quiz-title">Quiz - Test Your Knowledge</h1>
     
@@ -9,9 +10,8 @@
     </div>
     
     <!-- Quiz Form -->
-    <form method="POST" id="quiz-form">
+    <form method="POST" action="{% url 'submit_quiz' %}" id="quiz-form">
         {% csrf_token %}
-        
         {% for item in questions_data %}
             <div class="question-block">
                 <h2 class="question-title">Question {{ forloop.counter }}:</h2>
@@ -30,114 +30,91 @@
             </div>
         {% endfor %}
         
-        <!-- Submit Button -->
         <button type="submit" class="submit-btn">Submit</button>
     </form>
+    
 </div>
 
 <!-- Styles for quiz page -->
 <style>
-/* General body styling */
-body {
-    font-family: 'Roboto', sans-serif;
-    margin: 0;
-    padding: 0;
-    background-color: #f7f9fc; /* Same background as upload page */
-}
+    /* General body styling */
+    body {
+        font-family: 'Roboto', sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #f7f9fc; /* Same background as upload page */
+    }
 
-/* Container styling */
-.quiz-container {
-    width: 100%;
-    max-width: 800px;
-    margin: 50px auto;
-    padding: 40px;
-    background-color: #ffffff;
-    border-radius: 12px;
-    box-shadow: 0 6px 25px rgba(0, 0, 0, 0.1); /* Slight shadow for depth */
-}
+    /* Container styling */
+    .quiz-container {
+        width: 100%;
+        max-width: 800px;
+        margin: 50px auto;
+        padding: 40px;
+        background-color: #ffffff;
+        border-radius: 12px;
+        box-shadow: 0 6px 25px rgba(0, 0, 0, 0.1); /* Slight shadow for depth */
+    }
 
-/* Title styling */
-.quiz-title {
-    text-align: center;
-    font-size: 30px; /* Larger font size for title */
-    color: #4A90E2;
-    margin-bottom: 40px; /* Increased space below title */
-}
+    /* Title styling */
+    .quiz-title {
+        text-align: center;
+        font-size: 30px; /* Larger font size for title */
+        color: #4A90E2;
+        margin-bottom: 40px; /* Increased space below title */
+    }
 
-/* Question block styling */
-.question-block {
-    margin-bottom: 40px; /* Space between questions */
-}
+    /* Question block styling */
+    .question-block {
+        margin-bottom: 40px; /* Space between questions */
+    }
 
-.question-title {
-    font-size: 22px;
-    font-weight: bold;
-    color: #333;
-}
+    .question-title {
+        font-size: 22px;
+        font-weight: bold;
+        color: #333;
+    }
 
-.question-text {
-    font-size: 18px;
-    line-height: 1.6; /* Increased line height for better readability */
-}
+    .question-text {
+        font-size: 18px;
+        line-height: 1.6; /* Increased line height for better readability */
+    }
 
-/* Options list styling */
-.options-list {
-    padding-left: 20px; /* Indent options slightly */
-}
+    /* Options list styling */
+    .options-list {
+        padding-left: 20px; /* Indent options slightly */
+    }
 
-.option-item {
-    margin-bottom: 15px; /* Space between options increased */
-}
+    .option-item {
+        margin-bottom: 15px; /* Space between options increased */
+    }
 
-input[type="radio"] {
-    margin-right: 10px; /* Space between radio button and label text */
-}
+    input[type="radio"] {
+        margin-right: 10px; /* Space between radio button and label text */
+    }
 
-label {
-    font-size: 16px;
-}
+    label {
+        font-size: 16px;
+    }
 
-/* Submit button styling */
-.submit-btn {
-    display: block;
-    width: 100%;
-    padding: 15px;
-    background-color: #4A90E2; /* Blue button */
-    color: white;
-    border-radius: 8px; /* Rounded corners */
-    border: none;
-}
+    /* Submit button styling */
+    .submit-btn {
+        display: block;
+        width: 100%;
+        padding: 15px;
+        background-color: #4A90E2; /* Blue button */
+        color: white;
+        border-radius: 8px; /* Rounded corners */
+        border: none;
+    }
 
-.submit-btn:hover {
-    background-color: #0e3358; /* Darker blue on hover */
-}
+    .submit-btn:hover {
+        background-color: #0e3358; /* Darker blue on hover */
+    }
 </style>
 
 <!-- JavaScript for handling form submission -->
-<script>
-document.getElementById('quiz-form').addEventListener('submit', function(e) {
-    e.preventDefault();
-    
-    fetch(window.location.href, {
-        method: 'POST',
-        body: new FormData(this),
-        headers: {
-            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.score !== undefined) {
-            alert(`Your score: ${data.score} out of ${document.querySelectorAll('h2').length}`);
-        } else if (data.error) {
-            alert(`Error: ${data.error}`);
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('An error occurred while submitting the quiz');
-    });
-});
-</script>
+<script src="{% static 'Quiz_Base/quiz.js' %}"></script>
+
 
 {% endblock %}

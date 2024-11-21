@@ -1,39 +1,49 @@
+{% load quiz_extras %}
 <!DOCTYPE html>
 <html>
 <head>
     <title>Quiz Results</title>
-    <!-- Include Bootstrap CSS for styling -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    {% load quiz_extras %}  <!-- Ensure any custom template tags are loaded -->
     <style>
         .correct {
             color: green;
+            font-weight: bold;
         }
         .incorrect {
             color: red;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
     <div class="container mt-5">
-        <h1>Your Results</h1>
+        <h1 class="mb-4">Quiz Results</h1>
         <p class="lead">You scored <strong>{{ score }}</strong> out of <strong>{{ total }}</strong>.</p>
 
-        <h2>Review:</h2>
-        {% for question in questions %}
+        <h2>Question Review</h2>
+        {% for question, user_answer in questions|zip_lists:user_answers %}
             <div class="mb-4">
-                <p>{{ question.text|safe }}</p>
-                <p>Your answer: <strong>{{ user_answers|get_item:forloop.counter0 }}</strong></p>
-                <p>Correct answer: <strong>{{ question.answer }}</strong></p>
-                {% if user_answers|get_item:forloop.counter0 == question.answer %}
-                    <p class="correct">Correct!</p>
-                {% else %}
-                    <p class="incorrect">Incorrect.</p>
-                {% endif %}
+                <p><strong>Q{{ forloop.counter }}:</strong> {{ question.question }}</p>
+                <ul>
+                    {% for option_key, option_value in question.options.items %}
+                        <li 
+                            {% if option_key == question.correct_answer %}
+                                class="correct"
+                            {% elif option_key == user_answer %}
+                                class="incorrect"
+                            {% endif %}
+                        >
+                            {{ option_key }}) {{ option_value }}
+                        </li>
+                    {% endfor %}
+                </ul>
+                <p>Your Answer: <strong>{% if user_answer %}{{ user_answer }}{% else %}None{% endif %}</strong></p>
+                <p>Correct Answer: <strong>{{ question.correct_answer }}</strong></p>
             </div>
             <hr>
         {% endfor %}
-        <a href="{% url 'upload_pdf' %}" class="btn btn-secondary">Upload Another PDF</a>
+
+        <a href="{% url 'upload' %}" class="btn btn-secondary mt-3">Upload Another PDF</a>
     </div>
 </body>
 </html>

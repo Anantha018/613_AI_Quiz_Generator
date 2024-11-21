@@ -8,7 +8,11 @@ class QuizForm(forms.Form):
             self.fields[f'question_{idx}'] = forms.ChoiceField(
                 choices=choices,
                 widget=forms.RadioSelect(attrs={
-                    'class': 'form-radio'
+                    'class': 'form-radio form-control'  # Add any additional CSS classes
                 }),
-                required=True
+                required=True,
+                label=mcq.get('question', ''),
+                error_messages={
+                    'required': 'Please select an answer for this question.'
+                }
             )

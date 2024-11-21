@@ -1,6 +1,5 @@
 # utils.py
 from PyPDF2 import PdfReader
-
 import os
 import google.generativeai as genai
 import json
@@ -24,9 +23,6 @@ groq_api_key = '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'  # Ret
 llm = ChatGroq(groq_api_key=groq_api_key, model_name="llama3-8b-8192")
 
 
-import json
-import re
-
 def generate_mcqs_with_groq(pdf_text, output_filename='generated_mcqs.json'):
     # Split text into smaller chunks
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
@@ -43,45 +39,24 @@ def generate_mcqs_with_groq(pdf_text, output_filename='generated_mcqs.json'):
     Instructions:
     - Create exactly one multiple-choice question.
     - Include four answer options, clearly identifying the correct one.
+    - Exclude explanations or any additional comments beyond the question and options.
     """
 
     for i, chunk in enumerate(chunks):
-        # Format the prompt with the current text chunk
         prompt = prompt_template.format(chunk=chunk)
-        
-        # Generate the response
         response = llm.invoke(prompt)
-        
-        # Debug: Print the response to see if it's generating content
-        print(f"Chunk {i+1} response:", response)
 
-        # Ensure the response is valid and contains a valid MCQ format
         if response:
-            # Extract the text content from the response (if it is an AIMessage or similar object)
-            if hasattr(response, 'content'):
-                response_text = response.content
-            else:
-                response_text = str(response)
-
-            # Debug: Print the raw response text for troubleshooting
-            print(f"Raw response text for chunk {i+1}: {response_text}")
-
-            # Clean up the response and extract the MCQ text using regex
-            match = re.search(r'(?:Question[:\s]+)(.*?)(?:\n.*?[A-D]\))', response_text, re.DOTALL)
-            if match:
-                mcq = match.group(1).strip()
-                mcqs.append(mcq)
-            else:
-                mcqs.append(f"Unexpected MCQ format in chunk {i+1}: {response_text}")
+            mcqs.append(response.content.strip())
         else:
-            mcqs.append(f"No valid MCQ generated for chunk {i+1}. Response was empty.")
+            mcqs.append(f"No valid MCQ generated for chunk {i+1}.")
 
-    # Save the MCQs to a JSON file
     with open(output_filename, 'w') as json_file:
         json.dump(mcqs, json_file, indent=4)
 
     print(f"MCQs saved to {output_filename}")
     return mcqs
+
 
     
 import re
@@ -94,20 +69,25 @@ def parse_mcqs(mcq_text):
             question_match = re.search(r"(?:Question \d+:|Here(?:'s| is) .*?:)\s*(.*?)(?=\n[A-D]\))", chunk, re.DOTALL | re.IGNORECASE)
             
             # Extract options
-            options_match = re.findall(r"([A-D])\)(.*?)(?=(?:\n[A-D]\)|\nCorrect answer:|\Z))", chunk, re.DOTALL)
+            options_match = re.findall(r"([A-D])\)\s*(.*?)(?=(?:\n[A-D]\)|\nCorrect answer:|\Z))", chunk, re.DOTALL)
             
             # Extract correct answer
             correct_answer_match = re.search(r"Correct answer:\s*([A-D])", chunk)
 
+            # Ensure explanation does not merge with options
+            explanation_match = re.search(r"(Explanation:.*)", chunk, re.DOTALL)
+
             if question_match and options_match and correct_answer_match:
                 question = question_match.group(1).strip()
-                options = {opt[0]: opt[1].strip() for opt in options_match}
+                options = {opt[0]: re.split(r"(?:Correct answer:|Explanation:)", opt[1].strip())[0].strip() for opt in options_match}
                 correct_answer = correct_answer_match.group(1)
+                explanation = explanation_match.group(1).strip() if explanation_match else None
 
                 parsed_mcqs.append({
                     'question': question,
                     'options': options,
-                    'correct_answer': correct_answer
+                    'correct_answer': correct_answer,
+                    'explanation': explanation  # Optional field
                 })
             else:
                 print(f"Failed to parse MCQ: {chunk}")
@@ -117,21 +97,19 @@ def parse_mcqs(mcq_text):
 
     return parsed_mcqs
 
+
 def generate_html_for_quiz(mcq_list):
     html_output = ''
     for idx, mcq in enumerate(mcq_list):
-        # If the MCQ has an unexpected format (like missing options), handle it
-        if 'A)' not in mcq:
-            html_output += format_html('<p>{}</p>', mcq)  # Just display as text
+        if 'options' not in mcq or not mcq['options']:
+            html_output += format_html('<p>{}</p>', mcq)  # Display error message
         else:
-            # Extract the question and options
-            question_part = mcq.split("\n")[0].strip()
-            options_part = mcq.split("\n")[1:]
-            options = [opt.split(")")[1].strip() for opt in options_part if ")" in opt]
-            
-            # Format the question with radio buttons for options
-            html_output += format_html('<div class="question"><p><strong>{}</strong></p>', question_part)
-            for i, option in enumerate(options):
-                html_output += format_html('<label><input type="radio" name="q{0}" value="option{1}">{2}</label><br>', idx, i, option)
+            # Format question
+            html_output += format_html('<div class="question"><p><strong>Question {0}: {1}</strong></p>', idx + 1, mcq['question'])
+            for opt_key, option in mcq['options'].items():
+                html_output += format_html(
+                    '<label><input type="radio" name="q{0}" value="{1}"> {2}) {3}</label><br>',
+                    idx, opt_key, opt_key, option
+                )
             html_output += '</div>'
     return html_output
