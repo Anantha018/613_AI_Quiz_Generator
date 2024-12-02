@@ -13,6 +13,9 @@
             color: red;
             font-weight: bold;
         }
+        .upload-another-btn {
+            margin: 20px; 
+        }
     </style>
 </head>
 <body>
@@ -43,7 +46,10 @@
             <hr>
         {% endfor %}
 
-        <a href="{% url 'upload' %}" class="btn btn-secondary mt-3">Upload Another PDF</a>
+        <div class="upload-another-btn">
+            <a href="{% url 'upload' %}" class="btn btn-secondary mt-3">Upload Another PDF</a>
+        </div>
+
     </div>
 </body>
 </html>

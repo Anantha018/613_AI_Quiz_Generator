@@ -14,7 +14,7 @@ body.dark-mode {
 /* Title container styling */
 .title-container {
     text-align: center;
-    margin-top: 20px;
+    margin-top: 200px;
 }
 
 .classnest-title {
@@ -75,7 +75,7 @@ h1 {
     display: block;
     width: 100%;
     padding: 15px;
-    background-color: #4A90E2; /* Blue button */
+    background-color: #65c864; /* Blue button */
     color: white;
     border-radius: 8px; /* Rounded corners */
     border: none;
@@ -84,7 +84,7 @@ h1 {
 }
 
 .upload-form button:hover {
-    background-color: #0e3358; /* Darker blue on hover */
+    background-color: #1f9532; /* Darker blue on hover */
 }
 
 /* Message styling */
